@@ -1,137 +1,158 @@
-# 💰 AI Financial Assistant
+# FinanceAI
 
-> An intelligent expense tracking and budgeting web app powered by Machine Learning.
-> Built with Flask · Scikit-learn · SQLite · Bootstrap 5 · Chart.js
+A personal finance web application for tracking expenses, managing income, and gaining AI-powered insights into spending habits. Built with Flask and a glassmorphism UI.
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Python 3.11, Flask 3.0 |
-| **Database** | SQLite via Flask-SQLAlchemy |
-| **ML / Data** | Scikit-learn, Pandas, NumPy |
-| **Auth** | Flask-Login, Flask-Bcrypt |
-| **Frontend** | Bootstrap 5, Chart.js 4, Vanilla JS |
-| **Design** | Glassmorphism UI, CSS Variables (dark/light) |
-| **Deployment** | Render / Railway (Gunicorn) |
+| Backend | Python 3.11, Flask 3.0 |
+| Database | SQLite via Flask-SQLAlchemy |
+| ML / Data | Scikit-learn, Pandas, NumPy |
+| Auth | Flask-Login, Flask-Bcrypt |
+| AI | Google Gemini API (RAG-based chat) |
+| Frontend | Bootstrap 5, Chart.js 4, Vanilla JS |
+| Design | Glassmorphism UI, CSS Variables (dark/light themes) |
+| Deployment | Render / Railway via Gunicorn |
 
 ---
 
-## ✨ Features
+## Features
 
-- **User Auth** — Register, login, logout, password hashing, session management
-- **Dashboard** — Glassmorphism stat cards, 4 Chart.js visualisations, budget progress bar
-- **Expense CRUD** — Add / edit / delete with category, payment method, date
-- **Income CRUD** — Add / edit / delete with source tagging
-- **AI Category Prediction** — TF-IDF + Logistic Regression auto-classifies descriptions
-- **Spending Prediction** — Random Forest Regressor predicts next month's spend
-- **Budget Recommendations** — Safe budget, expected savings, smart tips
-- **AI Insights Page** — 6+ personalised insight cards generated from your data
-- **Dark / Light Mode** — Persisted via localStorage
-- **Fully Responsive** — Works on mobile, tablet, desktop
+- **Authentication** — Register, login, logout with bcrypt password hashing and session management
+- **Dashboard** — Key financial stats, budget progress bar, recent transactions, and top spending categories
+- **Expense Management** — Full CRUD with category, payment method, and date
+- **Income Management** — Full CRUD with source tagging
+- **AI Chat Assistant** — RAG-powered chat using Gemini API; asks questions about your actual financial data
+- **ML Category Classifier** — TF-IDF + Logistic Regression auto-classifies expense descriptions
+- **Spending Predictor** — Random Forest Regressor predicts next month's total spend
+- **Smart Insights** — Automatically generated insight cards based on your transaction history
+- **Landing Page** — Public-facing home page for unauthenticated visitors
+- **Dark / Light Theme** — Toggle persisted via localStorage
+- **Responsive Layout** — Mobile, tablet, and desktop support
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ai-financial-assistant/
 ├── app/
-│   ├── __init__.py          # App factory, DB init, ML seed
-│   ├── models.py            # SQLAlchemy models
-│   ├── auth/                # Register, Login, Profile
-│   ├── dashboard/           # Summary stats + charts
-│   ├── expenses/            # Expense CRUD
-│   ├── income/              # Income CRUD
-│   ├── ml/                  # ML engine + routes
-│   ├── insights/            # AI insights generator
+│   ├── __init__.py              # App factory, DB init, ML seed data
+│   ├── models.py                # SQLAlchemy models
+│   ├── auth/                    # Register, login, logout, profile
+│   ├── dashboard/               # Summary stats, quick-add, landing page
+│   ├── expenses/                # Expense CRUD
+│   ├── income/                  # Income CRUD
+│   ├── chat/                    # AI chat with RAG engine
+│   ├── ml/                      # ML classifier and spending predictor
+│   ├── insights/                # Auto-generated financial insights
 │   ├── static/
-│   │   ├── css/style.css    # Glassmorphism design system
+│   │   ├── css/style.css        # Glassmorphism design system and theme variables
 │   │   └── js/
-│   │       ├── app.js       # Global JS (theme, sidebar, alerts)
-│   │       └── charts.js    # Chart.js (pie, bar, line, area)
-│   └── templates/           # Jinja2 HTML templates
+│   │       ├── app.js           # Theme toggle, sidebar, flash alerts
+│   │       └── charts.js        # Chart.js configurations
+│   └── templates/               # Jinja2 HTML templates
+│       ├── home.html            # Public landing page
+│       ├── base.html            # Base layout with sidebar and topbar
+│       └── ...
 ├── config.py
-├── run.py                   # Dev server entry point
-├── wsgi.py                  # Production entry point
-├── Procfile                 # Render / Railway deploy
+├── run.py                       # Development server entry point
+├── wsgi.py                      # Production entry point
+├── Procfile                     # Render / Railway deployment config
 └── requirements.txt
 ```
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ```bash
-# 1. Clone
-git clone https://github.com/yourname/ai-financial-assistant.git
-cd ai-financial-assistant
+# 1. Clone the repository
+git clone https://github.com/tani-shaa/financeai.git
+cd financeai
 
-# 2. Virtual environment
+# 2. Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate      # Windows
-source venv/bin/activate   # Mac/Linux
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS / Linux
 
-# 3. Install
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run
+# 4. Configure environment variables
+cp .env.example .env
+# Edit .env and set SECRET_KEY and GEMINI_API_KEY
+
+# 5. Run the development server
 python run.py
-# → http://127.0.0.1:5000
+# Open http://127.0.0.1:5000
 ```
 
 ---
 
-## 🧠 ML Models
+## Environment Variables
 
-### A. Category Classifier
-- **Algorithm**: TF-IDF Vectorizer → Logistic Regression
+| Variable | Description |
+|---|---|
+| `SECRET_KEY` | Flask session secret key |
+| `GEMINI_API_KEY` | Google Gemini API key for the AI chat feature |
+| `DATABASE_URL` | Optional — defaults to SQLite at `instance/finance.db` |
+
+---
+
+## Machine Learning
+
+### Category Classifier
+
+- **Algorithm**: TF-IDF Vectorizer with Logistic Regression
 - **Input**: Expense description text
-- **Output**: Category label + confidence %
-- **Training data**: 80+ seed samples + user's own expenses
-- **Retrain**: Click "Retrain Classifier" on the ML Predictions page
+- **Output**: Predicted category label with confidence percentage
+- **Training data**: 80+ seed samples, augmented by the user's own labelled expenses
+- **Retraining**: Available via the ML Predictions page
 
-### B. Spending Predictor
+### Spending Predictor
+
 - **Algorithm**: Random Forest Regressor
-- **Input**: Last 6 months of monthly totals (lag features, rolling means, trend)
-- **Output**: Predicted next-month spend
-- **Fallback**: Weighted average when < 7 months of data
+- **Input**: Last 6 months of monthly totals with lag features, rolling means, and trend
+- **Output**: Predicted spend for the next month
+- **Fallback**: Weighted moving average when fewer than 7 months of data are available
 
 ---
 
-## 🗄 Database Schema
+## Database Schema
 
 ```
-users          → id, username, email, password_hash, full_name, currency, monthly_budget
-expenses       → id, user_id, amount, category, description, date, payment_method
-income         → id, user_id, amount, source, description, date
-predictions    → id, user_id, predicted_amount, prediction_month, algorithm, confidence
-ml_training    → id, description, category
+users           id, username, email, password_hash, full_name, currency, monthly_budget
+expenses        id, user_id, amount, category, description, date, payment_method
+income          id, user_id, amount, source, description, date
+predictions     id, user_id, predicted_amount, prediction_month, algorithm, confidence
+ml_training     id, description, category
 ```
 
 ---
 
-## ☁️ Deploy to Render
+## Deployment
 
-1. Push repo to GitHub
-2. New Web Service on render.com → connect repo
-3. **Build command**: `pip install -r requirements.txt`
-4. **Start command**: `gunicorn wsgi:app`
-5. Add environment variable: `SECRET_KEY=your-secret-here`
+### Render
 
-## ☁️ Deploy to Railway
+1. Push the repository to GitHub
+2. Create a new Web Service on [render.com](https://render.com) and connect the repo
+3. Set build command: `pip install -r requirements.txt`
+4. Set start command: `gunicorn wsgi:app`
+5. Add environment variables: `SECRET_KEY`, `GEMINI_API_KEY`
 
-1. Push repo to GitHub
-2. New project on railway.app → Deploy from GitHub
-3. Add `SECRET_KEY` env var
-4. Railway auto-detects `Procfile`
+### Railway
+
+1. Push the repository to GitHub
+2. Create a new project on [railway.app](https://railway.app) and deploy from GitHub
+3. Add environment variables: `SECRET_KEY`, `GEMINI_API_KEY`
+4. Railway auto-detects the `Procfile`
 
 ---
 
-## 📸 Screenshots
+## License
 
-| Dashboard | Expenses | AI Insights |
-|---|---|---|
-| Glassmorphism cards + 4 charts | CRUD table with category badges | Personalised insight cards |
+MIT
