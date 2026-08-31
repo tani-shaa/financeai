@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<!-- default theme: light (overridden by localStorage via app.js) -->
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}FinanceAI — Smart Budget & Expense Tracker{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Glassmorphism background layers -->
+<div class="bg-orb bg-orb-1"></div>
+<div class="bg-orb bg-orb-2"></div>
+<div class="bg-orb bg-orb-3"></div>
+<div class="bg-orb bg-orb-4"></div>
+<div class="bg-orb bg-orb-5"></div>
+<div class="bg-grid"></div>
+<div id="bg-canvas"></div>
+
+{% if current_user.is_authenticated %}
+  {# ── Sidebar ── #}
+  <aside class="sidebar" id="sidebar">
+    <a href="{{ url_for('dashboard.index') }}" class="sidebar-brand">
+      <div class="brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="5" width="18" height="3" rx="1.5" fill="white"/>
+          <rect x="3" y="11" width="12" height="3" rx="1.5" fill="white"/>
+          <rect x="3" y="17" width="16" height="3" rx="1.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="brand-text">FinanceAI</span>
+    </a>
+    
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard.index') }}"
+         class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+        <span class="material-icons">grid_view</span><span>Dashboard</span>
+      </a>
+
+      <div class="nav-section">Transactions</div>
+      <a href="{{ url_for('expenses.index') }}"
+         class="nav-item {% if request.blueprint == 'expenses' %}active{% endif %}">
+        <span class="material-icons">receipt_long</span><span>Expenses</span>
+      </a>
+      <a href="{{ url_for('income.index') }}"
+         class="nav-item {% if request.blueprint == 'income' %}active{% endif %}">
+        <span class="material-icons">account_balance_wallet</span><span>Income & Funds</span>
+      </a>
+      <a href="{{ url_for('expenses.add') }}"
+         class="nav-item sub-item {% if request.endpoint == 'expenses.add' %}active{% endif %}">
+        <span class="material-icons">add_circle_outline</span><span>Add Transaction</span>
+      </a>
+
+      <div class="nav-section">AI & Analytics</div>
+      <a href="{{ url_for('chat.index') }}"
+         class="nav-item {% if request.blueprint == 'chat' %}active{% endif %}">
+        <span class="material-icons">psychology</span>
+        <span>AI Assistant</span>
+        <span class="nav-badge-new">PRO</span>
+      </a>
+      <a href="{{ url_for('ml.index') }}"
+         class="nav-item {% if request.blueprint == 'ml' %}active{% endif %}">
+        <span class="material-icons">insights</span><span>ML Predictions</span>
+      </a>
+      <a href="{{ url_for('insights.index') }}"
+         class="nav-item {% if request.blueprint == 'insights' %}active{% endif %}"><span class="material-icons">auto_graph</span><span>Smart Insights</span>
+      </a>
+
+      <div class="nav-section">Account</div>
+      <a href="{{ url_for('auth.profile') }}"
+         class="nav-item {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+        <span class="material-icons">manage_accounts</span><span>Settings</span>
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="nav-item text-danger">
+        <span class="material-icons">logout</span><span>Sign Out</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-avatar-mini">
+        {{ current_user.username[0]|upper }}
+      </div>
+      <div>
+        <div style="color:var(--text);font-weight:700;line-height:1.2">{{ current_user.full_name or current_user.username }}</div>
+        <small style="color:var(--text-muted);font-size:0.75rem">Active Trader</small>
+      </div>
+    </div>
+  </aside>
+
+  {# ── Main Content ── #}
+  <div class="main-content" id="mainContent">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle d-lg-none" id="sidebarToggle" aria-label="Toggle sidebar">
+          <span class="material-icons">menu</span>
+        </button>
+        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+      </div>
+      
+      <div class="topbar-actions">
+        <!-- Notification Pill Button -->
+        <button class="icon-btn" aria-label="Notifications" title="Notifications">
+          <span class="material-icons">notifications_none</span>
+          <span class="icon-btn-badge"></span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle Light/Dark Theme">
+          <span class="material-icons" id="themeIcon">light_mode</span>
+        </button>
+
+        <!-- User Profile Pill -->
+        <a href="{{ url_for('auth.profile') }}" class="user-badge text-decoration-none">
+          <div class="user-avatar-mini">
+            {{ current_user.username[0]|upper }}
+          </div>
+          <span class="d-none d-sm-inline">{{ current_user.full_name or current_user.username }}</span>
+        </a>
+      </div>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash-container pt-3 px-4">
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+{% else %}
+  {# ── Auth wrapper (no sidebar) ── #}
+  <div class="auth-wrapper">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} alert-dismissible fade show"
+             style="max-width:440px;width:100%;margin-bottom:16px" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endwith %}
+    {% block auth_content %}{% endblock %}
+  </div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+<script>
+/* ── Floating Glass Blobs ────────────────────────────────────────────── */
+(function() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+
+  const blobs = [
+    { w: 90,  h: 90,  left: '5%',   top: '15%', delay: '0s',  dur: '18s', rx: '28px' },
+    { w: 60,  h: 60,  left: '88%',  top: '10%', delay: '4s',  dur: '22s', rx: '50%'  },
+    { w: 120, h: 50,  left: '70%',  top: '60%', delay: '8s',  dur: '20s', rx: '24px' },
+    { w: 50,  h: 50,  left: '20%',  top: '75%', delay: '2s',  dur: '16s', rx: '50%'  },
+    { w: 80,  h: 80,  left: '45%',  top: '5%',  delay: '11s', dur: '24s', rx: '20px' },
+    { w: 40,  h: 70,  left: '92%',  top: '45%', delay: '6s',  dur: '19s', rx: '50%'  },
+    { w: 70,  h: 40,  left: '10%',  top: '50%', delay: '14s', dur: '21s', rx: '16px' },
+    { w: 55,  h: 55,  left: '60%',  top: '85%', delay: '3s',  dur: '17s', rx: '50%'  },
+  ];
+
+  blobs.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'glass-blob';
+    el.style.cssText = `
+      width:${b.w}px; height:${b.h}px;
+      left:${b.left}; top:${b.top};
+      border-radius:${b.rx};
+      animation-delay:${b.delay};
+      animation-duration:${b.dur};
+    `;
+    canvas.appendChild(el);
+  });
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

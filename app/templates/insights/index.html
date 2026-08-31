@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}AI Insights — Nexora{% endblock %}
+{% block page_title %}Financial Intelligence Insights{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <div class="monogram-avatar ms" style="width:50px;height:50px">
+    <span class="material-icons" style="font-size:1.6rem">auto_graph</span>
+  </div>
+  <div>
+    <h3 class="mb-0">Algorithmic Financial Insights</h3>
+    <p class="text-muted mb-0">Autonomous telemetry & portfolio diagnostics powered by Nexora AI.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% for insight in insights %}
+  <div class="col-lg-6">
+    <div class="insight-card insight-{{ insight.type }}">
+      <div class="insight-icon">
+        <span class="material-icons">{{ insight.icon }}</span>
+      </div>
+      <div class="d-flex flex-column gap-1">
+        <div style="font-weight:700;font-size:0.95rem;color:var(--text)">{{ insight.type|upper }} ALERT</div>
+        <div class="text-dim" style="font-size:0.9rem;line-height:1.5">{{ insight.text }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if not insights %}
+<div class="card-glass text-center py-5 mt-4">
+  <div class="monogram-avatar mx-auto mb-3" style="width:60px;height:60px">
+    <span class="material-icons" style="font-size:1.8rem">lightbulb</span>
+  </div>
+  <h5>No Insights Generated Yet</h5>
+  <p class="text-muted">Record more deposits and transactions to unlock automated portfolio diagnostics.</p>
+  <a href="{{ url_for('expenses.add') }}" class="btn btn-primary btn-sm">Add Transaction</a>
+</div>
+{% endif %}
+{% endblock %}

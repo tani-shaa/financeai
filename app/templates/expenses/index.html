@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Expenses — Nexora{% endblock %}
+{% block page_title %}Expenses & Outflows{% endblock %}
+
+{% block content %}
+<!-- ── Toolbar ─────────────────────────────────────────────────────────── -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+  <a href="{{ url_for('expenses.add') }}" class="btn btn-primary">
+    <span class="material-icons">add</span>Add Expense
+  </a>
+
+  <form class="d-flex align-items-center gap-2" method="GET">
+    <select name="category" class="form-select form-select-sm" style="min-width:160px" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == category_filter %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <input type="month" name="month" class="form-control form-control-sm"
+           value="{{ month_filter }}" onchange="this.form.submit()"/>
+  </form>
+</div>
+
+<!-- ── Expense Table ───────────────────────────────────────────────────── -->
+<div class="card-glass">
+  {% if expenses.items %}
+  <div class="table-responsive">
+    <table class="fin-table">
+      <thead>
+        <tr>
+          <th>Transaction</th><th>Category</th><th>Date</th>
+          <th>Payment</th><th>Amount</th><th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in expenses.items %}
+        <tr class="expense-row" data-id="{{ e.id }}">
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <div class="monogram-avatar {{ e.category|lower }}" style="width:38px;height:38px;font-size:0.82rem">
+                {{ e.category[:2]|upper }}
+              </div>
+              <div>
+                <div style="font-weight:700;color:var(--text)">{{ e.description or e.category }}</div>
+                <small class="text-muted">ID: #{{ e.id }}</small>
+              </div>
+            </div>
+          </td>
+          <td><span class="cat-badge cat-{{ e.category|lower }}">{{ e.category }}</span></td>
+          <td class="text-muted">{{ e.date.strftime('%d %b %Y') }}</td>
+          <td><span class="pay-badge">{{ e.payment_method }}</span></td>
+          <td class="text-danger fw-700">-{{ current_user.currency }}{{ '%.2f'|format(e.amount) }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('expenses.edit', expense_id=e.id) }}" class="action-btn me-1" title="Edit">
+              <span class="material-icons" style="font-size:1.1rem">edit</span>
+            </a>
+            <button class="action-btn text-danger" onclick="confirmDelete('{{ url_for('expenses.delete', expense_id=e.id) }}')" title="Delete">
+              <span class="material-icons" style="font-size:1.1rem">delete</span>
+            </button>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if expenses.pages > 1 %}
+  <div class="d-flex justify-content-center mt-4">
+    <ul class="pagination pagination-sm gap-1">
+      {% for p in expenses.iter_pages() %}
+        {% if p %}
+          <li class="page-item {% if p == expenses.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('expenses.index', page=p, category=category_filter, month=month_filter) }}">{{ p }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-5">
+    <div class="monogram-avatar mx-auto mb-3" style="width:60px;height:60px">
+      <span class="material-icons" style="font-size:1.8rem">receipt_long</span>
+    </div>
+    <h5>No expenses recorded</h5>
+    <p class="text-muted">Add your first expense or fund withdrawal to track cashflow.</p>
+    <a href="{{ url_for('expenses.add') }}" class="btn btn-primary btn-sm">Add Expense</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content modal-glass">
+      <div class="modal-body text-center p-4">
+        <span class="material-icons text-danger" style="font-size:3rem">warning</span>
+        <h5 class="mt-2">Delete this record?</h5>
+        <p class="text-muted">This transaction will be permanently removed.</p>
+        <form id="deleteForm" method="POST" class="d-flex justify-content-center gap-2 mt-3">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background:#f43f5e">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete(url) {
+  document.getElementById('deleteForm').action = url;
+  new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

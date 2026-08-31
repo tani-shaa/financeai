@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}ML Predictions & Forecasts — Nexora{% endblock %}
+{% block page_title %}ML Predictive Engine{% endblock %}
+
+{% block content %}
+<!-- ── Prediction Cards ────────────────────────────────────────────────── -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-4">
+    <div class="card-glass h-100">
+      <div class="card-glass-header">
+        <span class="material-icons text-accent">psychology</span>
+        <h5>Projected Outflow</h5>
+      </div>
+      <div class="prediction-big">
+        <span class="pred-amount">{{ current_user.currency }}{{ '%.2f'|format(prediction.predicted) }}</span>
+        <span class="pred-label">Predicted for {{ next_month }}</span>
+        <div class="d-flex gap-2 mt-2">
+          <span class="badge-rag">{{ prediction.method }}</span>
+          <span class="pill-growth {% if prediction.confidence != 'high' %}text-muted{% endif %}" style="font-size:0.75rem">
+            {{ prediction.confidence|upper }} CONFIDENCE
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if recommendation.status == 'ok' %}
+  <div class="col-lg-4">
+    <div class="card-glass h-100">
+      <div class="card-glass-header">
+        <span class="material-icons text-warning">account_balance_wallet</span>
+        <h5>Recommended Cap</h5>
+      </div>
+      <div class="prediction-big">
+        <span class="pred-amount text-warning">{{ current_user.currency }}{{ '%.2f'|format(recommendation.safe_budget) }}</span>
+        <span class="pred-label">Optimized Safe Allocation</span>
+        <div class="pred-meta mt-2">
+          <small class="text-muted">Avg Monthly: {{ current_user.currency }}{{ '%.2f'|format(recommendation.avg_monthly_expense) }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card-glass h-100">
+      <div class="card-glass-header">
+        <span class="material-icons text-success">savings</span>
+        <h5>Projected Alpha / Savings</h5>
+      </div>
+      <div class="prediction-big">
+        <span class="pred-amount {% if recommendation.expected_savings < 0 %}text-danger{% else %}text-success{% endif %}">
+          {{ current_user.currency }}{{ '%.2f'|format(recommendation.expected_savings) }}
+        </span>
+        <span class="pred-label">Estimated Monthly Delta</span>
+        <div class="pred-meta mt-2">
+          <small class="text-muted">Heavy weight: <strong style="color:var(--primary)">{{ recommendation.top_category }}</strong> ({{ recommendation.top_category_pct }}%)</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ── Spending History Chart ──────────────────────────────────────────── -->
+{% if monthly_totals %}
+<div class="card-glass mb-4">
+  <div class="card-glass-header">
+    <span class="material-icons">show_chart</span>
+    <h5>Historical Volume vs ML Trajectory</h5>
+  </div>
+  <div class="chart-wrap" style="height:280px">
+    <canvas id="predictionChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Tips ───────────────────────────────────────────────────────────── -->
+{% if recommendation.status == 'ok' and recommendation.tips %}
+<div class="card-glass mb-4">
+  <div class="card-glass-header">
+    <span class="material-icons text-accent">auto_awesome</span>
+    <h5>Algorithmic Recommendations</h5>
+  </div>
+  <div class="d-flex flex-column gap-2">
+    {% for tip in recommendation.tips %}
+      <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+        <span class="material-icons text-accent" style="font-size:1.1rem">chevron_right</span>
+        <span style="font-size:0.9rem">{{ tip }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Retrain Model ─────────────────────────────────────────────────── -->
+<div class="card-glass">
+  <div class="card-glass-header">
+    <span class="material-icons text-accent">model_training</span>
+    <h5>Model Pipeline Training</h5>
+  </div>
+  <p class="text-muted mb-3">Re-fit Random Forest and TF-IDF categorization weights with current transaction database.</p>
+  <button class="btn btn-outline-accent" id="retrainBtn">
+    <span class="material-icons">refresh</span>Retrain Classifier
+  </button>
+  <div id="retrainResult" class="mt-3"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const histLabels = {{ labels | tojson }};
+const histValues = {{ monthly_totals | tojson }};
+const predicted  = {{ prediction.predicted }};
+const nextMonth  = "{{ next_month }}";
+const currency   = "{{ current_user.currency }}";
+
+if (histLabels.length > 0) {
+  const extLabels = [...histLabels, nextMonth];
+  const extValues = [...histValues, null];
+  const predValues = new Array(histLabels.length).fill(null);
+  predValues[predValues.length - 1] = histValues[histValues.length - 1];
+  predValues.push(predicted);
+
+  const ctx = document.getElementById('predictionChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: extLabels,
+      datasets: [
+        {
+          label: 'Actual Flow',
+          data: extValues,
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.12)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: '#38bdf8',
+        },
+        {
+          label: 'ML Forecast',
+          data: predValues,
+          borderColor: '#34d399',
+          borderDash: [6, 4],
+          fill: false,
+          pointRadius: 6,
+          pointBackgroundColor: '#34d399',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#94a3b8' } },
+        tooltip: {
+          backgroundColor: 'rgba(10, 20, 44, 0.92)',
+          borderColor: 'rgba(56, 189, 248, 0.3)',
+          borderWidth: 1,
+          callbacks: { label: ctx => ` ${currency}${ctx.parsed.y?.toFixed(2)}` }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#64748b' }, grid: { display: false } },
+        y: { ticks: { color: '#64748b', callback: v => currency + v }, grid: { color: 'rgba(147, 197, 253, 0.08)' } },
+      },
+    },
+  });
+}
+
+document.getElementById('retrainBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('retrainBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons spin">sync</span> Retraining Pipeline…';
+  try {
+    const res = await fetch('{{ url_for("ml.retrain") }}', { method: 'POST' });
+    const data = await res.json();
+    const el = document.getElementById('retrainResult');
+    if (data.status === 'ok') {
+      el.innerHTML = `<div class="alert alert-success">Model successfully retrained! Accuracy: ${(data.accuracy * 100).toFixed(1)}% on ${data.samples} samples.</div>`;
+    } else {
+      el.innerHTML = `<div class="alert alert-warning">${data.reason}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('retrainResult').innerHTML = '<div class="alert alert-danger">Error during retraining.</div>';
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<span class="material-icons">refresh</span>Retrain Classifier';
+});
+</script>
+{% endblock %}

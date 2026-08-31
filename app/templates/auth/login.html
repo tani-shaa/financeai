@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Sign In — Nexora Trading{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-logo">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="5" width="18" height="3" rx="1.5" fill="white"/>
+        <rect x="3" y="11" width="12" height="3" rx="1.5" fill="white"/>
+        <rect x="3" y="17" width="16" height="3" rx="1.5" fill="white"/>
+      </svg>
+    </div>
+    <h1 class="auth-title">Nexora</h1>
+    <p class="auth-subtitle">Sign in to your financial terminal</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('auth.login') }}" class="auth-form" novalidate>
+    <div class="form-group">
+      <label class="form-label" for="identifier">Username or Email</label>
+      <div class="input-icon-wrap">
+        <span class="material-icons input-icon">person</span>
+        <input type="text" id="identifier" name="identifier" class="form-control"
+               placeholder="Enter username or email" required autocomplete="username"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Password</label>
+      <div class="input-icon-wrap">
+        <span class="material-icons input-icon">lock</span>
+        <input type="password" id="password" name="password" class="form-control"
+               placeholder="Enter secure password" required autocomplete="current-password"/>
+        <button type="button" class="toggle-pw" onclick="togglePassword('password')">
+          <span class="material-icons">visibility</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="remember" name="remember"/>
+        <label class="form-check-label text-muted" for="remember" style="font-size:0.85rem">Keep session active</label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full py-2">
+      <span class="material-icons">login</span>Sign In
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    New to Nexora?
+    <a href="{{ url_for('auth.register') }}">Create an account</a>
+  </p>
+</div>
+{% endblock %}

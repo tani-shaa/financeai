@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Settings & Profile — Nexora{% endblock %}
+{% block page_title %}Settings & Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card-glass">
+      <div class="card-glass-header">
+        <span class="material-icons text-accent">manage_accounts</span>
+        <h5>Portfolio & Account Settings</h5>
+      </div>
+      <form method="POST" action="{{ url_for('auth.profile') }}">
+        <div class="form-group">
+          <label class="form-label">Trader / Display Name</label>
+          <input type="text" name="full_name" class="form-control"
+                 value="{{ current_user.full_name or '' }}" placeholder="e.g. Alex Rivera"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-control" value="{{ current_user.username }}" disabled/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" class="form-control" value="{{ current_user.email }}" disabled/>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Currency Symbol</label>
+              <select name="currency" class="form-select">
+                {% for sym in ['$', '₹', '€', '£', '¥', '₩'] %}
+                  <option value="{{ sym }}" {% if current_user.currency == sym %}selected{% endif %}>{{ sym }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Monthly Target Budget</label>
+              <input type="number" name="monthly_budget" class="form-control" step="0.01" min="0"
+                     value="{{ current_user.monthly_budget or '' }}" placeholder="0.00"/>
+            </div>
+          </div>
+        </div>
+        <hr style="border-color:var(--border);margin:1.5rem 0"/>
+        <div class="form-group">
+          <label class="form-label">Update Password <small class="text-muted">(leave blank to keep current)</small></label>
+          <input type="password" name="new_password" class="form-control"
+                 placeholder="Min 6 characters"/>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">
+          <span class="material-icons">save</span>Save Preferences
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card-glass">
+      <div class="card-glass-header">
+        <span class="material-icons text-info">verified_user</span>
+        <h5>Terminal Status</h5>
+      </div>
+      <div class="d-flex flex-column gap-3">
+        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+          <span class="text-muted">Account Tier</span>
+          <span class="badge-rag" style="font-size:0.75rem">NEXORA PRO</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+          <span class="text-muted">Member Since</span>
+          <span class="fw-700">{{ current_user.created_at.strftime('%B %Y') }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+          <span class="text-muted">Username ID</span>
+          <span class="fw-700">@{{ current_user.username }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+          <span class="text-muted">Registered Email</span>
+          <span class="fw-700">{{ current_user.email }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 rounded" style="background:rgba(15,30,60,0.5);border:1px solid rgba(147,197,253,0.08)">
+          <span class="text-muted">Monthly Cap</span>
+          <span class="fw-700 text-accent">{{ current_user.currency }}{{ '%.2f'|format(current_user.monthly_budget or 0) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

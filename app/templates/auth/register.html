@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Create Account — Nexora{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card" style="max-width:520px">
+  <div class="auth-header">
+    <div class="auth-logo">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="5" width="18" height="3" rx="1.5" fill="white"/>
+        <rect x="3" y="11" width="12" height="3" rx="1.5" fill="white"/>
+        <rect x="3" y="17" width="16" height="3" rx="1.5" fill="white"/>
+      </svg>
+    </div>
+    <h1 class="auth-title">Join Nexora</h1>
+    <p class="auth-subtitle">Initialize your personal trading & finance cockpit</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="full_name">Full Name</label>
+          <div class="input-icon-wrap">
+            <span class="material-icons input-icon">badge</span>
+            <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Alex Morgan"/>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="username">Username <span class="text-danger">*</span></label>
+          <div class="input-icon-wrap">
+            <span class="material-icons input-icon">alternate_email</span>
+            <input type="text" id="username" name="username" class="form-control"
+                   placeholder="alex_trader" required minlength="3"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="email">Email <span class="text-danger">*</span></label>
+      <div class="input-icon-wrap">
+        <span class="material-icons input-icon">email</span>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="alex@nexora.io" required/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+          <div class="input-icon-wrap">
+            <span class="material-icons input-icon">lock</span>
+            <input type="password" id="password" name="password" class="form-control"
+                   placeholder="Min 6 chars" required minlength="6"/>
+            <button type="button" class="toggle-pw" onclick="togglePassword('password')">
+              <span class="material-icons">visibility</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password <span class="text-danger">*</span></label>
+          <div class="input-icon-wrap">
+            <span class="material-icons input-icon">lock_reset</span>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                   placeholder="Repeat password" required/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full mt-3 py-2">
+      <span class="material-icons">how_to_reg</span>Create Account
+    </button>
+  </form>
+
+  <p class="auth-switch">
+    Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>
+  </p>
+</div>
+{% endblock %}

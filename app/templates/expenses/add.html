@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Add Expense — Nexora{% endblock %}
+{% block page_title %}New Expense{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card-glass">
+      <div class="card-glass-header">
+        <span class="material-icons text-accent">add_circle</span>
+        <h5>Record Outflow / Expense</h5>
+      </div>
+
+      <form method="POST" action="{{ url_for('expenses.add') }}" id="expenseForm">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Amount <span class="text-danger">*</span></label>
+              <div class="input-icon-wrap">
+                <span class="input-currency">{{ current_user.currency }}</span>
+                <input type="number" name="amount" class="form-control ps-5" step="0.01" min="0.01"
+                       placeholder="0.00" required/>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Date <span class="text-danger">*</span></label>
+              <input type="date" name="date" class="form-control" value="{{ today }}" required/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description <span class="text-danger">*</span></label>
+          <div class="d-flex gap-2">
+            <input type="text" name="description" id="descInput" class="form-control"
+                   placeholder="e.g. Nvidia shares, Restaurant dinner, Cloud hosting..." required/>
+            <button type="button" class="btn btn-outline-accent btn-sm px-3" id="aiCatBtn" title="AI Predict Category">
+              <span class="material-icons">psychology</span>
+            </button>
+          </div>
+          <small class="text-muted">Click the AI button to auto-classify category.</small>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Category <span class="text-danger">*</span></label>
+              <select name="category" id="categorySelect" class="form-select" required>
+                {% for c in categories %}
+                  <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+              </select>
+              <div id="aiConfidence" class="cat-badge cat-others mt-2" style="display:none"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label class="form-label">Payment Method</label>
+              <select name="payment_method" class="form-select">
+                {% for m in payment_methods %}
+                  <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <span class="material-icons">save</span>Save Expense
+          </button>
+          <a href="{{ url_for('expenses.index') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('aiCatBtn').addEventListener('click', async () => {
+  const desc = document.getElementById('descInput').value.trim();
+  if (!desc) { alert('Enter a description first.'); return; }
+  const btn = document.getElementById('aiCatBtn');
+  btn.innerHTML = '<span class="material-icons spin">sync</span>';
+  try {
+    const res = await fetch('{{ url_for("ml.api_predict_category") }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({description: desc}),
+    });
+    const data = await res.json();
+    const sel = document.getElementById('categorySelect');
+    for (let o of sel.options) {
+      if (o.value === data.category) { o.selected = true; break; }
+    }
+    const badge = document.getElementById('aiConfidence');
+    badge.textContent = `AI Suggested: ${data.category} (${(data.confidence*100).toFixed(0)}% confidence)`;
+    badge.style.display = 'inline-flex';
+  } catch(e) {
+    console.error(e);
+  } finally {
+    btn.innerHTML = '<span class="material-icons">psychology</span>';
+  }
+});
+</script>
+{% endblock %}
