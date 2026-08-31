@@ -9,18 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeBtn  = document.getElementById('themeToggle');
   const themeIcon = document.getElementById('themeIcon');
 
-  const savedTheme = localStorage.getItem('financeai-theme') || 'light';
-  // Reset old dark default to light
-  if (!localStorage.getItem('financeai-theme')) {
-    localStorage.setItem('financeai-theme', 'light');
-  }
+  // v2 key — old 'financeai-theme' key is ignored, fresh default is dark
+  const THEME_KEY = 'financeai-theme-v2';
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
   applyTheme(savedTheme);
 
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
       const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
       applyTheme(next);
-      localStorage.setItem('financeai-theme', next);
+      localStorage.setItem(THEME_KEY, next);
     });
   }
 
